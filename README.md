@@ -22,6 +22,16 @@ docker compose up -d db
 docker compose run --rm --build app alembic upgrade head
 ```
 
+4.  Добавте демонстрационные данные:
+Скрипт добавляет 40 тестовых сотрудников в таблицу `employees`. Повторный запуск
+пропускает уже созданные тестовые записи по номеру телефона.
+
+Через Docker:
+
+```bash
+docker compose run --rm --build app python -m scripts.seed_employees
+```
+
 4. Запустите приложение:
 
 ```bash
@@ -29,6 +39,23 @@ docker compose up --build app
 ```
 
 5. Перейдите по адресу `http://localhost:8000`.
+
+## Тестовые данные
+
+Скрипт добавляет 40 тестовых сотрудников в таблицу `employees`. Повторный запуск
+пропускает уже созданные тестовые записи по номеру телефона.
+
+Через Docker:
+
+```bash
+docker compose run --rm --build app python -m scripts.seed_employees
+```
+
+Локально, после запуска PostgreSQL и применения миграций:
+
+```bash
+python -m scripts.seed_employees
+```
 
 ## Стек
 
