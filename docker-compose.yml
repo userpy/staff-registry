@@ -1,0 +1,41 @@
+services:
+  app:
+    build: .
+    container_name: employee_registry_app
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-employee_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-employee_password}
+      POSTGRES_DB: ${POSTGRES_DB:-employee_registry}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app/static/uploads:/app/app/static/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    container_name: employee_registry_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-employee_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-employee_password}
+      POSTGRES_DB: ${POSTGRES_DB:-employee_registry}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

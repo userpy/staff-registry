@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Редактирование сотрудника{% else %}Добавление сотрудника{% endif %}{% endblock %}
+
+{% block content %}
+<div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold tracking-normal text-ink">{% if is_edit %}Редактирование сотрудника{% else %}Добавление сотрудника{% endif %}</h1>
+        {% if is_edit and employee.get('full_name') %}
+            <p class="mt-1 text-sm text-muted">{{ employee.get('full_name') }}</p>
+        {% endif %}
+    </div>
+    <a href="{{ url_for('list_employees') }}" class="inline-flex h-10 w-fit items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-medium text-ink hover:bg-slate-50">
+        <i data-lucide="arrow-left" class="h-4 w-4"></i>
+        К реестру
+    </a>
+</div>
+
+<section class="border border-line bg-white p-5">
+    <form method="post" action="{{ action_url }}" enctype="multipart/form-data" class="grid gap-5 lg:grid-cols-[1fr_280px]">
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block">
+                <span class="mb-1 block text-sm font-semibold text-ink">Фамилия</span>
+                <input name="last_name" required value="{{ employee.get('last_name', '') }}" class="h-11 w-full rounded-md border border-line px-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                {% if errors.get('last_name') %}<span class="mt-1 block text-sm text-rose-700">{{ errors.get('last_name') }}</span>{% endif %}
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-sm font-semibold text-ink">Имя</span>
+                <input name="first_name" required value="{{ employee.get('first_name', '') }}" class="h-11 w-full rounded-md border border-line px-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                {% if errors.get('first_name') %}<span class="mt-1 block text-sm text-rose-700">{{ errors.get('first_name') }}</span>{% endif %}
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-sm font-semibold text-ink">Отчество</span>
+                <input name="middle_name" value="{{ employee.get('middle_name', '') or '' }}" class="h-11 w-full rounded-md border border-line px-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                {% if errors.get('middle_name') %}<span class="mt-1 block text-sm text-rose-700">{{ errors.get('middle_name') }}</span>{% endif %}
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-sm font-semibold text-ink">Телефон</span>
+                <input name="phone" required value="{{ employee.get('phone', '') }}" placeholder="+79991234567" class="h-11 w-full rounded-md border border-line px-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                {% if errors.get('phone') %}<span class="mt-1 block text-sm text-rose-700">{{ errors.get('phone') }}</span>{% endif %}
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-sm font-semibold text-ink">Дата рождения</span>
+                <input type="date" name="birth_date" required value="{{ employee.get('birth_date', '') }}" class="h-11 w-full rounded-md border border-line px-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                {% if errors.get('birth_date') %}<span class="mt-1 block text-sm text-rose-700">{{ errors.get('birth_date') }}</span>{% endif %}
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-sm font-semibold text-ink">Пол</span>
+                <select name="gender" required class="h-11 w-full rounded-md border border-line bg-white px-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                    <option value="">Выберите</option>
+                    {% for gender_option in genders %}
+                        <option value="{{ gender_option.value }}" {% if employee.get('gender') == gender_option.value %}selected{% endif %}>{{ gender_labels[gender_option.value] }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.get('gender') %}<span class="mt-1 block text-sm text-rose-700">{{ errors.get('gender') }}</span>{% endif %}
+            </label>
+        </div>
+
+        <aside class="border border-line bg-slate-50 p-4">
+            <div class="block">
+                <span class="mb-2 block text-sm font-semibold text-ink">Фото</span>
+                <div class="mb-3 flex h-48 w-full items-center justify-center overflow-hidden rounded-md border border-dashed border-line bg-white">
+                    {% if employee.get('photo_path') %}
+                        <img src="{{ employee.get('photo_path') }}" alt="" data-photo-target class="h-full w-full object-cover">
+                    {% else %}
+                        <div data-photo-empty class="text-sm text-muted">Фото не выбрано</div>
+                        <img src="" alt="" data-photo-target class="hidden h-full w-full object-cover">
+                    {% endif %}
+                </div>
+                <label for="photo-input" class="inline-flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-ink px-3 text-sm font-semibold text-white hover:bg-slate-700">
+                    <i data-lucide="plus" class="h-4 w-4"></i>
+                    Добавить файл
+                </label>
+                <input id="photo-input" type="file" name="photo" accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-photo-input class="file-input-hidden">
+                <span data-photo-file-name class="mt-2 block text-center text-sm text-muted">Файл не выбран</span>
+                {% if errors.get('photo') %}<span class="mt-2 block text-sm text-rose-700">{{ errors.get('photo') }}</span>{% endif %}
+            </div>
+        </aside>
+
+        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end lg:col-span-2">
+            <a href="{{ url_for('list_employees') }}" class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-medium text-ink hover:bg-slate-50">
+                <i data-lucide="x" class="h-4 w-4"></i>
+                Отмена
+            </a>
+            <button type="submit" class="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">
+                <i data-lucide="save" class="h-4 w-4"></i>
+                Сохранить
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}

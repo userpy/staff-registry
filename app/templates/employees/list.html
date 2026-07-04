@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Реестр сотрудников{% endblock %}
+
+{% block content %}
+<div class="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold tracking-normal text-ink">Реестр сотрудников</h1>
+        <p class="mt-1 text-sm text-muted">Сотрудников: {{ employee_page.total }}</p>
+    </div>
+    <a href="{{ url_for('new_employee') }}" class="inline-flex h-10 w-fit items-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">
+        <i data-lucide="plus" class="h-4 w-4"></i>
+        Добавить сотрудника
+    </a>
+</div>
+
+<section class="mb-5 border border-line bg-white p-4">
+    <form method="get" action="{{ url_for('list_employees') }}" class="grid gap-3 md:grid-cols-[minmax(220px,2fr)_minmax(140px,1fr)_minmax(110px,1fr)_minmax(110px,1fr)_auto_auto] md:items-end">
+        <label class="block">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-normal text-muted">Поиск</span>
+            <input type="search" name="search" value="{{ filters.search or '' }}" class="h-10 w-full rounded-md border border-line px-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" placeholder="ФИО, телефон, возраст">
+        </label>
+        <label class="block">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-normal text-muted">Пол</span>
+            <select name="gender" class="h-10 w-full rounded-md border border-line bg-white px-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                <option value="">Все</option>
+                {% for gender_option in genders %}
+                    <option value="{{ gender_option.value }}" {% if filters.gender and filters.gender.value == gender_option.value %}selected{% endif %}>{{ gender_labels[gender_option.value] }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="block">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-normal text-muted">Возраст от</span>
+            <input type="number" name="age_from" min="0" max="150" value="{{ filters.age_from if filters.age_from is not none else '' }}" class="h-10 w-full rounded-md border border-line px-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+        </label>
+        <label class="block">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-normal text-muted">Возраст до</span>
+            <input type="number" name="age_to" min="0" max="150" value="{{ filters.age_to if filters.age_to is not none else '' }}" class="h-10 w-full rounded-md border border-line px-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+        </label>
+        <button type="submit" class="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ink px-4 text-sm font-semibold text-white hover:bg-slate-700">
+            <i data-lucide="search" class="h-4 w-4"></i>
+            Применить
+        </button>
+        <a href="{{ url_for('list_employees') }}" class="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-medium text-ink hover:bg-slate-50">
+            <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+            Сбросить
+        </a>
+    </form>
+</section>
+
+<section class="overflow-hidden border border-line bg-white">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-line text-left text-sm">
+            <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-normal text-muted">
+                <tr>
+                    <th scope="col" class="px-4 py-3">№</th>
+                    <th scope="col" class="px-4 py-3">Фото</th>
+                    <th scope="col" class="px-4 py-3">ФИО</th>
+                    <th scope="col" class="px-4 py-3">Возраст</th>
+                    <th scope="col" class="px-4 py-3">Телефон</th>
+                    <th scope="col" class="px-4 py-3">Пол</th>
+                    <th scope="col" class="px-4 py-3 text-right">Действия</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-line">
+                {% for employee in employee_page.items %}
+                    <tr class="{% if employee.gender.value == 'male' %}border-l-4 border-sky-500 bg-sky-50/60{% else %}border-l-4 border-rose-500 bg-rose-50/60{% endif %}">
+                        <td class="whitespace-nowrap px-4 py-3 font-medium text-ink">{{ employee.id }}</td>
+                        <td class="px-4 py-3">
+                            {% if employee.photo_path %}
+                                <img src="{{ employee.photo_path }}" alt="{{ employee.full_name }}" data-photo-preview class="h-12 w-12 cursor-zoom-in rounded-md object-cover ring-1 ring-line">
+                            {% else %}
+                                <div class="flex h-12 w-12 items-center justify-center rounded-md bg-slate-200 text-sm font-semibold text-slate-600 ring-1 ring-line">
+                                    {{ employee.last_name[:1] }}{{ employee.first_name[:1] }}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="min-w-64 px-4 py-3 font-medium text-ink">{{ employee.full_name }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 text-muted">{{ employee.age }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 text-muted">{{ employee.phone }}</td>
+                        <td class="whitespace-nowrap px-4 py-3">
+                            <span class="{% if employee.gender.value == 'male' %}bg-sky-100 text-sky-800{% else %}bg-rose-100 text-rose-800{% endif %} inline-flex rounded-md px-2 py-1 text-xs font-semibold">
+                                {{ gender_labels[employee.gender.value] }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex justify-end gap-2">
+                                <a href="{{ url_for('edit_employee_form', employee_id=employee.id) }}" class="inline-flex h-9 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-medium text-ink hover:bg-slate-50">
+                                    <i data-lucide="pencil" class="h-4 w-4"></i>
+                                    Изменить
+                                </a>
+                                <form method="post" action="{{ url_for('delete_employee', employee_id=employee.id) }}" data-confirm-delete>
+                                    <button type="submit" class="inline-flex h-9 items-center gap-2 rounded-md border border-rose-200 bg-white px-3 text-sm font-medium text-rose-700 hover:bg-rose-50">
+                                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                        Удалить
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="px-4 py-10 text-center text-sm text-muted">Сотрудники не найдены.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <p class="text-sm text-muted">Страница {{ employee_page.page }} из {{ employee_page.pages }}</p>
+    <div class="flex gap-2">
+        {% if employee_page.page > 1 %}
+            <a href="{{ request.url.include_query_params(page=employee_page.page - 1) }}" class="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-medium text-ink hover:bg-slate-50">
+                <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                Назад
+            </a>
+        {% endif %}
+        {% if employee_page.page < employee_page.pages %}
+            <a href="{{ request.url.include_query_params(page=employee_page.page + 1) }}" class="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-medium text-ink hover:bg-slate-50">
+                Вперёд
+                <i data-lucide="chevron-right" class="h-4 w-4"></i>
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div id="photo-preview" class="pointer-events-none fixed z-50 hidden h-40 w-40 overflow-hidden rounded-lg border border-white bg-white shadow-2xl ring-1 ring-slate-900/10">
+    <img src="" alt="" class="h-full w-full object-cover">
+</div>
+{% endblock %}
